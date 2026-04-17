@@ -4,44 +4,73 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wordly Dictionary</title>
-  <!-- Font Awesome 6 -->
+  <!-- 
+    ========================================================
+    COMMENT: External resources
+    - Font Awesome 6: Provides icons (search, home, bookmark, etc.)
+    - style.css: Custom styles for layout, colors, modals, responsiveness
+    ========================================================
+  -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- 
+    MAIN APPLICATION CONTAINER
+    This wraps all visible content and ensures consistent spacing and max-width.
+  -->
   <div class="app-container">
+    
+    <!-- ==================== HEADER & BRANDING ==================== -->
     <header>
       <div class="logo-brand">
+        <!-- Logo image (SVG) - removed background for clean look -->
         <img src="Assets/Dict-removebg-preview.svg" alt="Wordly Dictionary Logo" class="logo-image">
         <div class="brand-text">
           <span class="wordly">Wordly</span>
           <span class="dictionary">DICTIONARY</span>
         </div>
       </div>
-      <!-- Navigation -->
+      
+      <!-- 
+        NAVIGATION BUTTONS
+        - Home: Resets view to main search (handled by JS)
+        - Saved: Opens modal with user's saved words list
+        - Sign up: Opens mock authentication modal (client-side demo)
+        - Theme Toggle: Switches between light/dark mode (JS + CSS variables)
+      -->
       <nav class="main-nav">
         <button id="homeBtn" class="nav-btn"><i class="fas fa-home"></i> Home</button>
         <button id="savedBtn" class="nav-btn"><i class="fas fa-bookmark"></i> Saved</button>
         <button id="signupBtn" class="nav-btn"><i class="fas fa-user-plus"></i> Sign up</button>
-        <button id="themeToggle" class="nav-btn"><i class="fas fa-moon"></i> Theme
-</button>
+        <button id="themeToggle" class="nav-btn"><i class="fas fa-moon"></i> Theme</button>
       </nav>
     </header>
 
-    <!-- Search Section -->
+    <!-- ==================== SEARCH SECTION ==================== -->
     <div class="search-section">
+      <!-- 
+        Search Form: Submits the word or phrase to fetch definition.
+        The actual API call and display are handled in script.js.
+      -->
       <form id="searchForm">
         <div class="search-wrapper">
-          <i class="fas fa-search search-icon"></i>
+          <i class="fas fa-search search-icon"></i> <!-- decorative search icon -->
           <input type="text" id="wordInput" placeholder="Search a word or phrase" autocomplete="off">
           <button type="submit" aria-label="Search">
-            <i class="fas fa-arrow-right"></i>
+            <i class="fas fa-arrow-right"></i> <!-- submit arrow icon -->
           </button>
         </div>
       </form>
     </div>
 
-    <!-- Popular Searches -->
+    <!-- ==================== POPULAR SEARCHES ==================== -->
+    <!-- 
+      This section displays clickable word/phrase buttons.
+      Each button has a data-word attribute that holds the search term.
+      When clicked, JavaScript reads data-word and triggers the same search as typing.
+      Helps users discover common dictionary entries.
+    -->
     <div class="popular-searches">
       <p class="popular-label">Popular searches:</p>
       <div class="popular-list">
@@ -55,7 +84,12 @@
       </div>
     </div>
 
-    <!-- Word of the Day Section -->
+    <!-- ==================== WORD OF THE DAY (WOTD) ==================== -->
+    <!-- 
+      Fetches a random or predefined word of the day from an API (or mock).
+      The refresh button allows users to fetch another random word.
+      Displays word, definition, and possibly part of speech.
+    -->
     <div class="wotd-section">
       <div class="wotd-header">
         <h2><i class="fas fa-calendar-alt"></i> Word of the Day</h2>
@@ -64,11 +98,16 @@
         </button>
       </div>
       <div class="wotd-content" id="wotdContent">
-        <p>Loading word of the day...</p>
+        <p>Loading word of the day...</p> <!-- temporary loading state -->
       </div>
     </div>
 
-    <!-- Results Area -->
+    <!-- ==================== DYNAMIC RESULTS AREA ==================== -->
+    <!-- 
+      This div (#results) is where search results, definitions, examples,
+      synonyms, and pronunciation will be injected by script.js.
+      Initially shows an info message prompting user to search.
+    -->
     <div id="results">
       <div class="info-message">
         <i class="fas fa-book-open"></i> Enter a word above to see its definition, pronunciation, synonyms, and more.
@@ -76,16 +115,29 @@
     </div>
   </div>
 
-  <!-- Saved Words Modal (hidden by default) -->
+  <!-- 
+    ==================== MODAL: SAVED WORDS ====================
+    Hidden by default (CSS .modal display: none).
+    When user clicks "Saved" button, this modal opens.
+    It displays a list of words the user has bookmarked during the session
+    (or stored in localStorage). Each saved word can be clicked to search again.
+    The close button (×) hides the modal.
+  -->
   <div id="savedModal" class="modal">
     <div class="modal-content">
       <span class="close-modal">&times;</span>
       <h2><i class="fas fa-bookmark"></i> Your Saved Words</h2>
-      <div id="savedWordsList"></div>
+      <div id="savedWordsList"></div> <!-- dynamic list injected here -->
     </div>
   </div>
 
-  <!-- Sign Up Modal (mock) -->
+  <!-- 
+    ==================== MODAL: SIGN UP / LOGIN (MOCK) ====================
+    This is a client-side demo modal. No backend authentication.
+    It simply stores the user's name in sessionStorage/localStorage
+    and displays a welcome message. Perfect for demonstrating
+    modal behavior and state management without a real server.
+  -->
   <div id="signupModal" class="modal">
     <div class="modal-content">
       <span class="close-modal">&times;</span>
@@ -94,10 +146,36 @@
         <input type="text" id="username" placeholder="Enter your name" required>
         <button type="submit">Start Session</button>
       </form>
-      <p id="currentUserDisplay"></p>
+      <p id="currentUserDisplay"></p> <!-- shows active user name after login -->
     </div>
   </div>
 
+  <!-- 
+    ==================== JAVASCRIPT ====================
+    External script file contains all functionality:
+    - Fetching definitions from dictionary API (e.g., Free Dictionary API)
+    - Handling search form submission
+    - Populating popular words and word of the day
+    - Theme toggling (dark/light mode)
+    - Modals open/close logic
+    - Saving/removing words from saved list
+    - Storing user session name
+    - Adding event listeners to dynamic elements
+    The separation keeps HTML clean and logic maintainable.
+  -->
   <script src="script.js"></script>
+  <!-- 
+    ADDITIONAL EXPLANATION NOTES:
+    1. The app uses FontAwesome for visual icons (search, home, bookmark, etc.)
+    2. Data attributes like data-word allow easy access to search terms without inline JS.
+    3. Modals are implemented with a generic .modal class and unique IDs.
+    4. The "Theme" button toggles a class on body to switch CSS color variables.
+    5. All interactive elements have appropriate aria-labels for accessibility.
+    6. Popular searches help new users discover the dictionary's capabilities.
+    7. The results area (#results) is dynamically cleared and repopulated on each search.
+    8. Saved words persist using localStorage so they survive page reloads (if implemented in JS).
+    9. Word of the Day can be refreshed to get random interesting words, encouraging exploration.
+    10. The overall layout is responsive: search bar, buttons, and modals adapt to screen size.
+  -->
 </body>
 </html>
