@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wordly Dictionary</title>
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <div class="logo-brand">
+        <img src="Assets/Dict-removebg-preview.svg" alt="Wordly Dictionary Logo" class="logo-image">
+        <div class="brand-text">
+          <span class="wordly">Wordly</span>
+          <span class="dictionary">DICTIONARY</span>
+        </div>
+      </div>
+      <!-- Navigation -->
+      <nav class="main-nav">
+        <button id="homeBtn" class="nav-btn"><i class="fas fa-home"></i> Home</button>
+        <button id="savedBtn" class="nav-btn"><i class="fas fa-bookmark"></i> Saved</button>
+        <button id="signupBtn" class="nav-btn"><i class="fas fa-user-plus"></i> Sign up</button>
+        <button id="themeToggle" class="nav-btn"><i class="fas fa-moon"></i> Theme
+</button>
+      </nav>
+    </header>
+
+    <!-- Search Section -->
+    <div class="search-section">
+      <form id="searchForm">
+        <div class="search-wrapper">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" id="wordInput" placeholder="Search a word or phrase" autocomplete="off">
+          <button type="submit" aria-label="Search">
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Popular Searches -->
+    <div class="popular-searches">
+      <p class="popular-label">Popular searches:</p>
+      <div class="popular-list">
+        <button class="popular-word" data-word="resilient">resilient</button>
+        <button class="popular-word" data-word="incognito">incognito</button>
+        <button class="popular-word" data-word="beat around the bush">beat around the bush</button>
+        <button class="popular-word" data-word="factoid">factoid</button>
+        <button class="popular-word" data-word="generational">generational</button>
+        <button class="popular-word" data-word="kiss cam">kiss cam</button>
+        <button class="popular-word" data-word="TIL">TIL</button>
+      </div>
+    </div>
+
+    <!-- Word of the Day Section -->
+    <div class="wotd-section">
+      <div class="wotd-header">
+        <h2><i class="fas fa-calendar-alt"></i> Word of the Day</h2>
+        <button id="refreshWotd" aria-label="Get another word">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+      </div>
+      <div class="wotd-content" id="wotdContent">
+        <p>Loading word of the day...</p>
+      </div>
+    </div>
+
+    <!-- Results Area -->
+    <div id="results">
+      <div class="info-message">
+        <i class="fas fa-book-open"></i> Enter a word above to see its definition, pronunciation, synonyms, and more.
+      </div>
+    </div>
+  </div>
+
+  <!-- Saved Words Modal (hidden by default) -->
+  <div id="savedModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h2><i class="fas fa-bookmark"></i> Your Saved Words</h2>
+      <div id="savedWordsList"></div>
+    </div>
+  </div>
+
+  <!-- Sign Up Modal (mock) -->
+  <div id="signupModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h2><i class="fas fa-user-plus"></i> Sign up / Login</h2>
+      <form id="mockAuthForm">
+        <input type="text" id="username" placeholder="Enter your name" required>
+        <button type="submit">Start Session</button>
+      </form>
+      <p id="currentUserDisplay"></p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
