@@ -1,26 +1,27 @@
-// ==================== 1. DOM Elements ====================
+// ======================= GLOBAL REFERENCES =======================
 const form = document.getElementById('searchForm');
 const input = document.getElementById('wordInput');
-const resultsDiv = document.getElementById('results');
+const results = document.getElementById('results');
 const wotdDiv = document.getElementById('wotdContent');
 const refreshWotd = document.getElementById('refreshWotd');
+
+// Modals & buttons
 const savedModal = document.getElementById('savedModal');
 const signupModal = document.getElementById('signupModal');
 const homeBtn = document.getElementById('homeBtn');
 const savedBtn = document.getElementById('savedBtn');
 const signupBtn = document.getElementById('signupBtn');
-const savedListDiv = document.getElementById('savedWordsList');
+const savedList = document.getElementById('savedWordsList');
 const themeToggle = document.getElementById('themeToggle');
 
-// ==================== 2. User & Theme Setup ====================
-let currentUser = localStorage.getItem('wordlyUser') || null;  // mock login
+// Mock user (stored in localStorage)
+let currentUser = localStorage.getItem('wordlyUser') || null;
 
-// Load saved theme (navy or light)
+// ======================= THEME (light / navy) =======================
 if (localStorage.getItem('wordlyTheme') === 'navy') {
   document.body.classList.add('navy-theme');
   themeToggle.querySelector('i').className = 'fas fa-sun';
 }
-// Toggle theme on button click
 themeToggle.addEventListener('click', () => {
   document.body.classList.toggle('navy-theme');
   const isNavy = document.body.classList.contains('navy-theme');
@@ -29,7 +30,7 @@ themeToggle.addEventListener('click', () => {
   localStorage.setItem('wordlyTheme', isNavy ? 'navy' : 'light');
 });
 
-// ==================== 3. Saved Words Functions ====================
+// ======================= SAVED WORDS (localStorage) =======================
 function getSaved() {
   if (!currentUser) return [];
   return JSON.parse(localStorage.getItem(`saved_${currentUser}`)) || [];
@@ -61,19 +62,22 @@ function updateNote(word, newNote) {
 function renderSavedList() {
   const saved = getSaved();
   if (!saved.length) {
-    savedListDiv.innerHTML = '<p>No saved words yet.</p>';
+    savedList.innerHTML = '<p>No saved words yet.</p>';
     return;
   }
-  savedListDiv.innerHTML = saved.map(item => `
+  savedList.innerHTML = saved.map(item => `
     <div class="saved-word-item">
-      <div><strong>${item.word}</strong><br><small>${item.note || 'No notes'}</small></div>
-      <div>
-        <button class="edit-note" data-word="${item.word}">✏️</button>
-        <button class="delete-word" data-word="${item.word}">🗑️</button>
+      <div class="saved-word-info">
+        <strong>${item.word}</strong>
+        <div class="saved-word-note">${item.note || 'No notes'}</div>
+      </div>
+      <div class="saved-word-actions">
+        <button class="edit-note" data-word="${item.word}"><i class="fas fa-edit"></i></button>
+        <button class="delete-word" data-word="${item.word}"><i class="fas fa-trash"></i></button>
       </div>
     </div>
   `).join('');
-  // Edit note
+  // Attach edit/delete events
   document.querySelectorAll('.edit-note').forEach(btn => {
     btn.onclick = () => {
       const w = btn.dataset.word;
@@ -81,117 +85,110 @@ function renderSavedList() {
       if (newNote !== null) updateNote(w, newNote);
     };
   });
-  // Delete word
   document.querySelectorAll('.delete-word').forEach(btn => {
     btn.onclick = () => { if (confirm('Delete?')) deleteWord(btn.dataset.word); };
   });
 }
 
-// ==================== 4. API Calls & Display ====================
+// ======================= API CALL & DISPLAY =======================
 async function fetchWord(word) {
   const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
   if (!res.ok) throw new Error(`"${word}" not found`);
   return res.json();
 }
 
-async function searchAndDisplay(word) {
-  resultsDiv.innerHTML = '<div class="info-message">Loading...</div>';
+function showError(msg, target) { target.innerHTML = `<div class="error-message">⚠️ ${msg}</div>`; }
+function showLoading(target) { target.innerHTML = '<div class="info-message">🔄 Loading...</div>'; }
+
+async function searchAndDisplay(word, container = results) {
+  showLoading(container);
   try {
     const data = await fetchWord(word);
-    displayWord(data[0]);
-  } catch (err) {
-    resultsDiv.innerHTML = `<div class="error-message">⚠️ ${err.message}</div>`;
-  }
+    displayWord(data[0], container);
+  } catch (err) { showError(err.message, container); }
 }
 
-function displayWord(entry) {
+function displayWord(entry, container) {
   const word = entry.word;
   const phonetic = entry.phonetic || entry.phonetics?.find(p => p.text)?.text || '';
   const audioUrl = entry.phonetics?.find(p => p.audio)?.audio || null;
   const preview = entry.meanings[0]?.definitions[0]?.definition.slice(0, 100) || '';
-  let html = `<h2>${word}</h2><p>${phonetic}</p>`;
-  // Audio button
+
+  let html = `<div class="word-header"><h2>${word}</h2><span class="phonetic">${phonetic}</span></div>`;
+  
+  // Audio button: icon only (no text)
   if (audioUrl) {
-    html += `<button class="audio-btn" data-audio="${audioUrl}">🔊 Listen</button>`;
+    html += `<button class="audio-icon-btn" data-audio="${audioUrl}"><i class="fas fa-volume-up"></i></button>`;
   } else {
-    html += `<p>🔇 No audio</p>`;
+    html += `<p class="no-audio">🔇 No audio available</p>`;
   }
-  // Definitions & examples
+
   entry.meanings.forEach(meaning => {
     meaning.definitions.forEach((def, idx) => {
-      html += `<div><b>${meaning.partOfSpeech}</b>: ${def.definition}</div>`;
-      if (def.example) html += `<div><i>📝 "${def.example}"</i></div>`;
+      html += `
+        <div class="definition-card">
+          <div class="part-of-speech">${meaning.partOfSpeech}${idx > 0 ? ` (${idx+1})` : ''}</div>
+          <div class="definition-text">📖 ${def.definition}</div>
+          ${def.example ? `<div class="example-text">✍️ "${def.example}"</div>` : ''}
+        </div>
+      `;
     });
     if (meaning.synonyms?.length) {
-      html += `<div>🔗 Synonyms: ${meaning.synonyms.join(', ')}</div>`;
+      html += `<div class="synonyms-block">🔗 <strong>Synonyms:</strong> ${meaning.synonyms.join(', ')}</div>`;
     }
   });
-  html += `<button class="save-word-btn" data-word="${word}" data-preview="${preview}">💾 Save</button>`;
-  resultsDiv.innerHTML = html;
-  // Play audio
-  const audioBtn = resultsDiv.querySelector('.audio-btn');
-  if (audioBtn) audioBtn.onclick = () => new Audio(audioBtn.dataset.audio).play();
+
+  html += `<button class="save-word-btn" data-word="${word}" data-preview="${preview}">💾 Save this word</button>`;
+  container.innerHTML = html;
+
+  // Audio playback
+  const audioBtn = container.querySelector('.audio-icon-btn');
+  if (audioBtn) audioBtn.onclick = () => new Audio(audioBtn.dataset.audio).play().catch(e => console.log);
+
   // Save button
-  const saveBtn = resultsDiv.querySelector('.save-word-btn');
+  const saveBtn = container.querySelector('.save-word-btn');
   if (saveBtn) saveBtn.onclick = () => saveWord(saveBtn.dataset.word, saveBtn.dataset.preview);
 }
 
-// ==================== 5. Word of the Day ====================
-const wordBank = ['serendipity', 'ephemeral', 'luminous', 'petrichor', 'resilience'];
+// ======================= WORD OF THE DAY =======================
+const wordBank = ['serendipity', 'ephemeral', 'luminous', 'petrichor', 'mellifluous', 'resilience', 'nostalgia'];
 async function loadWotD(word) {
-  wotdDiv.innerHTML = '<p>Loading...</p>';
+  showLoading(wotdDiv);
   try {
     const data = await fetchWord(word);
     const entry = data[0];
-    wotdDiv.innerHTML = `<b>${entry.word}</b> <button class="wotd-lookup">🔍 Look up</button>`;
-    wotdDiv.querySelector('.wotd-lookup').onclick = () => searchAndDisplay(entry.word);
-  } catch { wotdDiv.innerHTML = '<p>Error loading word of the day</p>'; }
+    wotdDiv.innerHTML = `
+      <div class="wotd-word">${entry.word}</div>
+      <div class="wotd-pronounce">${entry.phonetic || ''}</div>
+      <button class="search-wotd-btn" data-word="${entry.word}">🔍 Look up</button>
+    `;
+    wotdDiv.querySelector('.search-wotd-btn').onclick = () => searchAndDisplay(entry.word);
+  } catch { wotdDiv.innerHTML = '<div class="error-message">Could not load word of the day</div>'; }
 }
 refreshWotd.onclick = () => loadWotD(wordBank[Math.floor(Math.random() * wordBank.length)]);
 loadWotD(wordBank[0]);
 
-// ==================== 6. Event Listeners (UI) ====================
-form.onsubmit = e => {
-  e.preventDefault();
-  const w = input.value.trim();
-  if (w) searchAndDisplay(w);
-  else resultsDiv.innerHTML = '<div class="error-message">Enter a word</div>';
-};
-// Popular word buttons
+// ======================= EVENT LISTENERS (UI) =======================
+form.onsubmit = e => { e.preventDefault(); const w = input.value.trim(); if (w) searchAndDisplay(w); else showError('Enter a word', results); };
 document.querySelectorAll('.popular-word').forEach(btn => {
-  btn.onclick = () => {
-    input.value = btn.dataset.word;
-    searchAndDisplay(btn.dataset.word);
-  };
+  btn.onclick = () => { input.value = btn.dataset.word; searchAndDisplay(btn.dataset.word); };
 });
-homeBtn.onclick = () => {
-  input.value = '';
-  resultsDiv.innerHTML = '<div class="info-message">📖 Search any word above</div>';
-};
-savedBtn.onclick = () => {
-  if (!currentUser) { alert('Sign up first!'); signupModal.style.display = 'block'; }
-  else { renderSavedList(); savedModal.style.display = 'block'; }
-};
+homeBtn.onclick = () => { input.value = ''; results.innerHTML = '<div class="info-message">📖 Enter a word to see definition, pronunciation, synonyms and more.</div>'; };
+savedBtn.onclick = () => { if (!currentUser) { alert('Sign up first!'); signupModal.style.display = 'block'; } else { renderSavedList(); savedModal.style.display = 'block'; } };
 signupBtn.onclick = () => signupModal.style.display = 'block';
-// Close modals
-document.querySelectorAll('.close-modal').forEach(close => {
-  close.onclick = () => { savedModal.style.display = 'none'; signupModal.style.display = 'none'; };
-});
-window.onclick = e => {
-  if (e.target === savedModal) savedModal.style.display = 'none';
-  if (e.target === signupModal) signupModal.style.display = 'none';
-};
+document.querySelectorAll('.close-modal').forEach(close => close.onclick = () => { savedModal.style.display = 'none'; signupModal.style.display = 'none'; });
+window.onclick = e => { if (e.target === savedModal) savedModal.style.display = 'none'; if (e.target === signupModal) signupModal.style.display = 'none'; };
 
-// ==================== 7. Mock Signup Form ====================
+// ======================= MOCK AUTH (SIGNUP) =======================
 document.getElementById('mockAuthForm').onsubmit = e => {
   e.preventDefault();
   const name = document.getElementById('username').value.trim();
   if (name) {
     currentUser = name;
     localStorage.setItem('wordlyUser', name);
-    document.getElementById('currentUserDisplay').innerHTML = `Logged as <strong>${name}</strong>`;
-    alert(`Welcome ${name}!`);
+    document.getElementById('currentUserDisplay').innerHTML = `Logged in as <strong>${name}</strong>`;
+    alert(`Welcome ${name}! You can now save words.`);
     signupModal.style.display = 'none';
   } else alert('Enter a name');
 };
-if (currentUser) document.getElementById('currentUserDisplay').innerHTML = `Logged as <strong>${currentUser}</strong>`;
+if (currentUser) document.getElementById('currentUserDisplay').innerHTML = `Logged in as <strong>${currentUser}</strong>`;
