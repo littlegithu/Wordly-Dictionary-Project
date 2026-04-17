@@ -157,10 +157,11 @@ async function loadWotD(word) {
   try {
     const data = await fetchWord(word);
     const entry = data[0];
+    // Changed: search icon instead of "Look up" text
     wotdDiv.innerHTML = `
       <div class="wotd-word">${entry.word}</div>
       <div class="wotd-pronounce">${entry.phonetic || ''}</div>
-      <button class="search-wotd-btn" data-word="${entry.word}">🔍 Look up</button>
+      <button class="search-wotd-btn" data-word="${entry.word}"><i class="fas fa-search"></i></button>
     `;
     wotdDiv.querySelector('.search-wotd-btn').onclick = () => searchAndDisplay(entry.word);
   } catch { wotdDiv.innerHTML = '<div class="error-message">Could not load word of the day</div>'; }
